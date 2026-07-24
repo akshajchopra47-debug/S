@@ -704,7 +704,7 @@
         <button type="button" id="mobileMenuToggle" aria-expanded="false" aria-controls="mobileMenuPanel" class="nav-link text-xs tracking-wider font-semibold px-1" style="background:none; border:none; cursor:pointer;">Menu</button>
         <span class="nav-bracket text-xs">]</span>
       </nav>
-      <div id="mobileMenuPanel" class="nav-capsule" style="display:none; position:absolute; top:calc(100% + 8px); right:0; min-width:180px; border-radius:16px; padding:10px; z-index:50; flex-direction:column;">
+      <div id="mobileMenuPanel" class="nav-capsule" style="display:none; position:fixed; min-width:180px; border-radius:16px; padding:10px; z-index:9999; flex-direction:column;">
         <a href="#guidance" class="nav-link block px-3 py-2 text-xs tracking-wider font-semibold mobile-menu-link">Guidance</a>
         <a href="#admissions" class="nav-link block px-3 py-2 text-xs tracking-wider font-semibold mobile-menu-link">Admissions</a>
         <a href="#about" class="nav-link block px-3 py-2 text-xs tracking-wider font-semibold mobile-menu-link">About</a>
@@ -1291,15 +1291,30 @@
     const mobileMenuPanel = document.getElementById('mobileMenuPanel');
 
     if (mobileMenuToggle && mobileMenuPanel) {
+      // Move the panel to be a direct child of <body>. This guarantees it can
+      // never get trapped inside an animated/transformed ancestor (which
+      // creates its own stacking context and can silently block taps on
+      // mobile), and lets us position it purely via fixed viewport coords.
+      document.body.appendChild(mobileMenuPanel);
+
+      function positionMenuPanel() {
+        const rect = mobileMenuToggle.getBoundingClientRect();
+        mobileMenuPanel.style.top = (rect.bottom + 8) + 'px';
+        mobileMenuPanel.style.right = (window.innerWidth - rect.right) + 'px';
+      }
+
       mobileMenuToggle.addEventListener('click', function (e) {
         e.stopPropagation();
         const isOpen = mobileMenuPanel.style.display === 'flex';
+        if (!isOpen) {
+          positionMenuPanel();
+        }
         mobileMenuPanel.style.display = isOpen ? 'none' : 'flex';
         mobileMenuToggle.setAttribute('aria-expanded', String(!isOpen));
       });
 
-      // Close menu when a link is tapped
-      document.querySelectorAll('.mobile-menu-link').forEach(function (link) {
+      // Close menu when a link is tapped (let the default navigation happen)
+      mobileMenuPanel.querySelectorAll('.mobile-menu-link').forEach(function (link) {
         link.addEventListener('click', function () {
           mobileMenuPanel.style.display = 'none';
           mobileMenuToggle.setAttribute('aria-expanded', 'false');
@@ -1308,9 +1323,17 @@
 
       // Close menu when tapping outside it
       document.addEventListener('click', function (e) {
-        if (!mobileMenuPanel.contains(e.target) && e.target !== mobileMenuToggle) {
+        if (mobileMenuPanel.style.display === 'flex' &&
+            !mobileMenuPanel.contains(e.target) &&
+            e.target !== mobileMenuToggle) {
           mobileMenuPanel.style.display = 'none';
           mobileMenuToggle.setAttribute('aria-expanded', 'false');
+        }
+      });
+
+      window.addEventListener('resize', function () {
+        if (mobileMenuPanel.style.display === 'flex') {
+          positionMenuPanel();
         }
       });
     }
