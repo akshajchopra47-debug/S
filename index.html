@@ -697,12 +697,20 @@
       <a href="#contact" class="nav-link nav-cta ml-2 tracking-wider text-xs">Contact</a>
     </nav>
 
-    <!-- Mobile fallback (simple) -->
-    <nav class="nav-capsule flex md:hidden items-center gap-2 px-5 py-2.5 rounded-full fade-up d2">
-      <span class="nav-bracket text-xs">[</span>
-      <a href="#" class="nav-link text-xs tracking-wider font-semibold px-1">Menu</a>
-      <span class="nav-bracket text-xs">]</span>
-    </nav>
+    <!-- Mobile menu -->
+    <div class="md:hidden relative fade-up d2">
+      <nav class="nav-capsule flex items-center gap-2 px-5 py-2.5 rounded-full">
+        <span class="nav-bracket text-xs">[</span>
+        <button type="button" id="mobileMenuToggle" aria-expanded="false" aria-controls="mobileMenuPanel" class="nav-link text-xs tracking-wider font-semibold px-1" style="background:none; border:none; cursor:pointer;">Menu</button>
+        <span class="nav-bracket text-xs">]</span>
+      </nav>
+      <div id="mobileMenuPanel" class="nav-capsule" style="display:none; position:absolute; top:calc(100% + 8px); right:0; min-width:180px; border-radius:16px; padding:10px; z-index:50; flex-direction:column;">
+        <a href="#guidance" class="nav-link block px-3 py-2 text-xs tracking-wider font-semibold mobile-menu-link">Guidance</a>
+        <a href="#admissions" class="nav-link block px-3 py-2 text-xs tracking-wider font-semibold mobile-menu-link">Admissions</a>
+        <a href="#about" class="nav-link block px-3 py-2 text-xs tracking-wider font-semibold mobile-menu-link">About</a>
+        <a href="#contact" class="nav-link block px-3 py-2 text-xs tracking-wider font-semibold mobile-menu-link">Contact</a>
+      </div>
+    </div>
   </header>
 
   <!-- ============ HERO ============ -->
@@ -720,7 +728,7 @@
       </p>
 
       <div class="fade-up d5 mt-10">
-        <button class="cta-btn">Book Free Counseling</button>
+        <a href="#contact" class="cta-btn" style="display:inline-block; text-decoration:none;">Book Free Counseling</a>
       </div>
 
       <!-- Refined credibility strip: quiet, elegant, no motion clutter -->
@@ -1125,8 +1133,13 @@
         </div>
 
         <div>
-          <label class="form-label">WhatsApp Contact Number</label>
+          <label class="form-label">Contact Number</label>
           <input type="tel" id="leadPhone" placeholder="+91 00000 00000" class="form-input mt-2" required>
+        </div>
+
+        <div>
+          <label class="form-label">Email Address</label>
+          <input type="email" id="leadEmail" placeholder="you@gmail.com" class="form-input mt-2">
         </div>
 
         <div>
@@ -1138,6 +1151,11 @@
             <option>Tech</option>
             <option>Executive</option>
           </select>
+        </div>
+
+        <div>
+          <label class="form-label">Anything else you'd like us to know? (optional)</label>
+          <textarea id="leadMessage" placeholder="Write a note..." class="form-input mt-2" rows="3"></textarea>
         </div>
 
         <button type="submit" class="submit-btn mt-2">Secure My Free Session</button>
@@ -1207,8 +1225,8 @@
     // ---- Supabase config ----
     // Replace with your actual project URL and anon public key
     // (Project Settings -> API in your Supabase dashboard)
-    const SUPABASE_URL = "https://bxgkfncnuijfouisrdcq.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4Z2tmbmNudWlqZm91aXNyZGNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4MTA5NzgsImV4cCI6MjEwMDM4Njk3OH0.pcuy2DM8anSw6D-_uO8SNo1755dNRPE0s6Dhmp5WfjY";
+    const SUPABASE_URL = "https://YOUR-PROJECT-ID.supabase.co";
+    const SUPABASE_ANON_KEY = "YOUR-ANON-PUBLIC-KEY";
 
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -1223,7 +1241,9 @@
 
       const name = document.getElementById('leadName').value.trim();
       const phone = document.getElementById('leadPhone').value.trim();
+      const email = document.getElementById('leadEmail').value.trim();
       const course = document.getElementById('leadCourse').value;
+      const message = document.getElementById('leadMessage').value.trim();
 
       if (!name || !phone) {
         leadFormStatus.textContent = "Please fill in your name and phone number.";
@@ -1242,7 +1262,9 @@
             {
               name: name,
               phone: phone,
+              email: email,
               course_interest: course,
+              message: message,
               source: 'website',
               status: 'new'
             }
@@ -1251,7 +1273,7 @@
         if (error) throw error;
 
         submitBtn.textContent = "Request Received";
-        leadFormStatus.textContent = "Thanks! We'll reach out on WhatsApp shortly.";
+        leadFormStatus.textContent = "Thanks! Your request has been received.";
         leadFormStatus.style.color = "#15803d";
         leadForm.reset();
 
@@ -1259,10 +1281,39 @@
         console.error('Supabase insert error:', err);
         submitBtn.disabled = false;
         submitBtn.textContent = originalBtnText;
-        leadFormStatus.textContent = "Something went wrong. Please try again or WhatsApp us directly.";
+        leadFormStatus.textContent = "Something went wrong. Please try again.";
         leadFormStatus.style.color = "#b91c1c";
       }
     });
+
+    // Mobile menu toggle
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    const mobileMenuPanel = document.getElementById('mobileMenuPanel');
+
+    if (mobileMenuToggle && mobileMenuPanel) {
+      mobileMenuToggle.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const isOpen = mobileMenuPanel.style.display === 'flex';
+        mobileMenuPanel.style.display = isOpen ? 'none' : 'flex';
+        mobileMenuToggle.setAttribute('aria-expanded', String(!isOpen));
+      });
+
+      // Close menu when a link is tapped
+      document.querySelectorAll('.mobile-menu-link').forEach(function (link) {
+        link.addEventListener('click', function () {
+          mobileMenuPanel.style.display = 'none';
+          mobileMenuToggle.setAttribute('aria-expanded', 'false');
+        });
+      });
+
+      // Close menu when tapping outside it
+      document.addEventListener('click', function (e) {
+        if (!mobileMenuPanel.contains(e.target) && e.target !== mobileMenuToggle) {
+          mobileMenuPanel.style.display = 'none';
+          mobileMenuToggle.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
   </script>
 </body>
 </html>
