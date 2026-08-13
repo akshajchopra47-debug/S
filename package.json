@@ -1,0 +1,20 @@
+{
+  "name": "avm-academy",
+  "version": "1.0.0",
+  "description": "AVM Academy - Your Path After 12th, Clarified",
+  "scripts": {
+    "dev": "npx serve public",
+    "build": "echo 'Static site, no build step required'",
+    "lint": "echo 'No linter configured for static HTML'"
+  },
+  "dependencies": {
+    "@vercel/analytics": "^1.1.1"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "education",
+    "academy"
+  ],
+  "author": "",
+  "license": "ISC"
+}
